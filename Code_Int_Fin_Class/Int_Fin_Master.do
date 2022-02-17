@@ -30,7 +30,7 @@ foreach dofile in build_cpis build_bop_qtr build_bop_ann build_bis {
 ** Assignment 1 do files
 ***************************************
 local import_reuters = 0
-local clean_monthly_data = 1
+local clean_monthly_data = 0
 
 foreach dofile in import_reuters clean_monthly_data {
 	if ``dofile'' == 1 do "${Code_Int_Fin_Class}/Assignment1/`dofile'.do"
