@@ -8,6 +8,7 @@ global gcap "${raw}/gcap/DTA"
 global fx "${raw}/fx"
 global output "${Data_Int_Fin_Class}/output"
 global temp "${Data_Int_Fin_Class}/temp"
+global cpis_alt "${Data_Int_Fin_Class}/cpis"
 
 cap mkdir "${Data_Int_Fin_Class}/output"
 cap mkdir "${Data_Int_Fin_Class}/temp"
@@ -31,7 +32,17 @@ foreach dofile in build_cpis build_bop_qtr build_bop_ann build_bis {
 ***************************************
 local import_reuters = 0
 local clean_monthly_data = 0
+local do_alternate_models = 0
 
-foreach dofile in import_reuters clean_monthly_data {
+foreach dofile in import_reuters clean_monthly_data do_alternate_models {
 	if ``dofile'' == 1 do "${Code_Int_Fin_Class}/Assignment1/`dofile'.do"
+}
+
+
+***************************************
+** Assignment 2 do files
+***************************************
+local clean_cpis = 1
+foreach dofile in clean_cpis {
+	if ``dofile'' == 1 do "${Code_Int_Fin_Class}/Assignment2/`dofile'.do"
 }
