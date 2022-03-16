@@ -31,7 +31,7 @@ egen indtype = group(indicatorcode)
 replace indtype = 2 if indtype == 3
 ** Get the dataset to the country-countercountry level and have wide fields for assets and liabilities
 collapse (sum) val* (firstnm) countryname counterpartcountryname ofc investor issuer from_issuer, by(countrycode counterpartcountrycode indtype)
-reshape wide val*, i(countrycode counterpartcountrycode) j(indtype)
+reshape wide val*, i(countrycode counterpartcountrycode) j(indtype) // now every line is a unique country-counterparty observation
 ren val*1 delta* // these variables give magnitude of debt holdings by country i issued by country j
 ren val*2 L*
 
@@ -46,15 +46,21 @@ forv yr = 1997/2022 {
 		** Get the share of assets owned by i that are issued by j
 		gen omega`yr' = (delta`yr'/A`yr') if from_issuer
 		** Now make the outside share from the residual
-		bys countrycode : egen omega0`yr' = total(omega`yr')
-		replace omega0`yr' = 1-omega0`yr'
+		bys countrycode : egen outside`yr' = total(omega`yr')
+		replace outside`yr' = 1-outside`yr'
 	}
 	else di "couldn't find delta`yr'"
 }
 
+reshape long A omega outside delta L, i(countrycode counterpartcountrycode) j(year)
+
+** Some quick summary stats before saving
 levelsof countrycode if issuer, local(issuers)
 foreach issuer in `issuers' {
 	qui summ omega2006 if counterpartcountrycode == `issuer'
 	local mm = r(mean)
 	di "mean exposure to `issuer': `mm'"
 }
+
+save "${output}/imf/CPIS_omegas", replace
+
