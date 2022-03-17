@@ -29,6 +29,9 @@ sort indicatorcode
 ** group together derived and non-derived liabilities
 egen indtype = group(indicatorcode)
 replace indtype = 2 if indtype == 3
+** Drop same-country bond holdings and international organizations
+drop if countrycode == counterpartcountrycode & indtype == 1
+drop if counterpartcountrycode < 100
 ** Get the dataset to the country-countercountry level and have wide fields for assets and liabilities
 collapse (sum) val* (firstnm) countryname counterpartcountryname ofc investor issuer from_issuer, by(countrycode counterpartcountrycode indtype)
 reshape wide val*, i(countrycode counterpartcountrycode) j(indtype) // now every line is a unique country-counterparty observation
@@ -42,7 +45,7 @@ forv yr = 1997/2022 {
 	if _rc == 0 {	
 		di "found delta`yr'"
 		** Get the total debt assets of country i
-		bys countrycode : egen A`yr' = total(delta`yr')
+		bys countrycode : egen A`yr' = total(delta`yr') 
 		** Get the share of assets owned by i that are issued by j
 		gen omega`yr' = (delta`yr'/A`yr') if from_issuer
 		** Now make the outside share from the residual
@@ -57,7 +60,7 @@ reshape long A omega outside delta L, i(countrycode counterpartcountrycode) j(ye
 ** Some quick summary stats before saving
 levelsof countrycode if issuer, local(issuers)
 foreach issuer in `issuers' {
-	qui summ omega2006 if counterpartcountrycode == `issuer'
+	qui summ omega if counterpartcountrycode == `issuer'
 	local mm = r(mean)
 	di "mean exposure to `issuer': `mm'"
 }
